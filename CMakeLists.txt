@@ -24,10 +24,10 @@ target_include_directories(dungeon PRIVATE include)
 
 # ── Warnings ──────────────────────────────────────────────────────────────────
 target_compile_options(dungeon PRIVATE
-    -Wall
-    -Wextra
-    -Wpedantic
-    -Wshadow
-    -Wconversion
-    -Wnull-dereference
+  -Wall
+  -Wextra
+  -Wpedantic
+  -Wshadow
+  -Wconversion
+  -Wnull-dereference
 )
