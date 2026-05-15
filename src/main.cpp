@@ -70,6 +70,9 @@ int main() {
 
   Player player{"Hero", start.center_row(), start.center_col()};
 
+  player.mark_visited(player.row, player.col);
+  player.mark_visible_as_visited(grid);
+
   // ── Bare-bones game loop
   // ──────────────────────────────────────────────────
   //
@@ -91,6 +94,8 @@ int main() {
       break;
 
     case GameState::Playing: {
+      Terminal::clear();
+
       render(grid, player);
 
       char key = Terminal::read_key();
@@ -115,6 +120,7 @@ int main() {
 
       if (dr != 0 || dc != 0) {
         auto result = try_move(player, grid, dr, dc);
+        player.mark_visible_as_visited(grid);
         if (!result && result.error() == MoveError::HitWall) {
           // Silently ignore wall collisions — just don't move
         }

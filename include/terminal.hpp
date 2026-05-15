@@ -1,6 +1,5 @@
 #pragma once
 
-#include <print>
 #include <termios.h>
 #include <unistd.h>
 
@@ -34,10 +33,7 @@ struct Terminal {
     return c;
   }
 
-  static void clear() {
-    // ANSI escape code: clear screen and move cursor to top-left
-    std::print("\033[2J\033[H");
-  }
+  static void clear() { ::write(STDOUT_FILENO, "\033[H", 3); }
 
 private:
   termios original{};

@@ -27,6 +27,7 @@ std::expected<void, MoveError> try_move(Player &player, Grid &grid, int d_row,
 
   player.row = static_cast<std::size_t>(new_row);
   player.col = static_cast<std::size_t>(new_col);
+  player.mark_visited(player.row, player.col);
 
   return {};
 }

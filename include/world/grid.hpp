@@ -15,4 +15,6 @@ struct Grid {
       : rows{rows}, cols{cols}, cells(rows * cols, Tile{Floor{}}) {}
 
   auto view() { return std::mdspan(cells.data(), rows, cols); }
+
+  auto view() const { return std::mdspan(cells.data(), rows, cols); }
 };
