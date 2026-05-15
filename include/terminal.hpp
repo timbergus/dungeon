@@ -35,6 +35,12 @@ struct Terminal {
 
   static void clear() { ::write(STDOUT_FILENO, "\033[H", 3); }
 
+  static void full_clear() {
+    // \033[2J — erase entire screen
+    // \033[H  — move cursor home
+    ::write(STDOUT_FILENO, "\033[2J\033[H", 7);
+  }
+
 private:
   termios original{};
 };

@@ -2,6 +2,8 @@
 #include <cstddef>
 #include <memory>
 #include <random>
+#include <unordered_set>
+#include <vector>
 
 #include "world/bsp.hpp"
 #include "world/tile.hpp"
@@ -128,6 +130,78 @@ BSPNode make_tree(Grid &grid, std::mt19937 &rng) {
   return root;
 }
 
+Rect first_room(BSPNode &node) {
+  if (node.is_leaf()) {
+    return node.region;
+  }
+
+  return first_room(*node.left);
+}
+
+Rect last_room(BSPNode &node) {
+  if (node.is_leaf()) {
+    return node.region;
+  }
+
+  return last_room(*node.right);
+}
+
+static void collect_leaves(BSPNode &node, std::vector<BSPNode *> &leaves) {
+  if (node.is_leaf()) {
+    leaves.push_back(&node);
+    return;
+  }
+
+  collect_leaves(*node.left, leaves);
+  collect_leaves(*node.right, leaves);
+}
+
+void place_landmarks(BSPNode &root, Grid &grid, std::mt19937 &rng) {
+  std::vector<BSPNode *> leaves;
+  collect_leaves(root, leaves);
+
+  // Need at least 2 rooms — one for stairs up, one for stairs down
+  if (leaves.size() < 2) {
+    return;
+  }
+
+  std::unordered_set<std::size_t> used_rooms;
+  used_rooms.insert(0);
+  used_rooms.insert(leaves.size() - 1);
+
+  auto v = grid.view();
+
+  // StairsUp in the first room (player start)
+  auto &start = leaves.front()->region;
+  v[start.center_row(), start.center_col()] = Tile{Stairs{StairsDirection::Up}};
+
+  // StairsDown in the last room
+  auto &end = leaves.back()->region;
+  v[end.center_row(), end.center_col()] = Tile{Stairs{StairsDirection::Down}};
+
+  // Chests in random middle rooms
+  std::uniform_int_distribution<std::size_t> pick(1, leaves.size() - 2);
+
+  std::size_t chest_count = std::min(leaves.size() / 3, std::size_t{3});
+
+  for (std::size_t i = 0; i < chest_count; ++i) {
+    // If we have more chests than available rooms, we need to stop adding them.
+    if (used_rooms.size() >= leaves.size()) {
+      break;
+    }
+
+    size_t index = pick(rng);
+
+    while (used_rooms.contains(index)) {
+      index = pick(rng);
+    }
+
+    auto &room = leaves[index]->region;
+    v[room.center_row(), room.center_col()] = Tile{Chest{}};
+    used_rooms.insert(index);
+  }
+}
+
 void generate(BSPNode &root, Grid &grid, std::mt19937 &rng) {
   // Fill everything with walls first
   auto v = grid.view();
@@ -141,12 +215,5 @@ void generate(BSPNode &root, Grid &grid, std::mt19937 &rng) {
   // Place rooms and carve corridors
   place_rooms(root, grid, rng, 3);
   carve_corridors(root, grid);
-}
-
-Rect first_room(BSPNode &node) {
-  if (node.is_leaf()) {
-    return node.region;
-  }
-
-  return first_room(*node.left);
+  place_landmarks(root, grid, rng);
 }

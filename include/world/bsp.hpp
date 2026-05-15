@@ -36,3 +36,7 @@ BSPNode make_tree(Grid &grid, std::mt19937 &rng);
 void generate(BSPNode &root, Grid &grid, std::mt19937 &rng);
 
 Rect first_room(BSPNode &node);
+
+Rect last_room(BSPNode &node);
+
+void place_landmarks(BSPNode &root, Grid &grid, std::mt19937 &rng);

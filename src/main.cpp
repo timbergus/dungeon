@@ -9,6 +9,10 @@
 #include "world/grid.hpp"
 #include "world/renderer.hpp"
 
+// Flags
+static constexpr FogMode DEBUG_FOG_MODE = FogMode::Disabled;
+// static constexpr bool DEBUG_SHOW_GRID = false; // For later.
+
 // ── A tiny taste of C++23 error handling ─────────────────────────────────────
 //
 // std::expected<T, E> is the modern C++ way to return "either a value or an
@@ -36,13 +40,16 @@ enum class GameState { MainMenu, Playing, Paused, GameOver };
 // ── Entry point
 // ───────────────────────────────────────────────────────────────
 int main() {
-  // std::println is C++23: std::format + newline, no '\n' ceremony needed.
-  std::println("╔══════════════════════════════╗");
-  std::println("║   🗡  DUNGEON CRAWLER  🗡     ║");
-  std::println("╚══════════════════════════════╝");
-  std::println("");
-
   Terminal terminal{};
+  terminal.full_clear();
+
+  // std::println is C++23: std::format + newline, no '\n' ceremony needed.
+  std::println("╔═════════════════════════════════════════╗");
+  std::println("║       /                                 ║");
+  std::println("║   O===[==== DUNGEON CRAWLER ========-   ║");
+  std::println("║       \\                                 ║");
+  std::println("╚═════════════════════════════════════════╝");
+  std::println("");
 
   // Pattern: handle the expected/unexpected at the call site.
   if (auto result = init_terminal(); !result) {
@@ -96,7 +103,7 @@ int main() {
     case GameState::Playing: {
       Terminal::clear();
 
-      render(grid, player);
+      render(grid, player, DEBUG_FOG_MODE);
 
       char key = Terminal::read_key();
       int dr{}, dc{};
