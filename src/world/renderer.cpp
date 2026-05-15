@@ -1,4 +1,5 @@
 #include <cstddef>
+#include <string>
 #include <unistd.h>
 
 #include "overloaded.hpp"
@@ -6,19 +7,38 @@
 
 static constexpr std::string_view DIM = "\033[2m";
 static constexpr std::string_view RESET = "\033[0m";
+static constexpr std::string_view YELLOW = "\033[33m";
+static constexpr std::string_view CYAN = "\033[36m";
+static constexpr std::string_view RED = "\033[31m";
+static constexpr std::string_view GREEN = "\033[32m";
+static constexpr std::string_view WHITE = "\033[37m";
 
-static char base_glyph(const Tile &tile) {
-  return std::visit(overloaded{
-                        [](const Floor &) { return '.'; },
-                        [](const Wall &) { return '#'; },
-                        [](const Door &d) { return d.is_open ? '_' : '+'; },
-                        [](const Stairs &s) {
-                          return s.direction == StairsDirection::Down ? '>'
-                                                                      : '<';
-                        },
-                        [](const Chest &c) { return c.is_open ? '~' : '='; },
-                    },
-                    tile);
+static std::string base_glyph(const Tile &tile) {
+  return std::visit(
+      overloaded{
+          [](const Floor &) -> std::string { return std::string{WHITE} + "."; },
+          [](const Wall &) -> std::string { return std::string{WHITE} + "#"; },
+          [](const Door &d) -> std::string {
+            if (d.is_locked) {
+              return std::string(RED) + "x";
+            }
+            return d.is_open ? std::string(GREEN) + "_"
+                             : std::string(GREEN) + "+";
+          },
+          [](const Stairs &s) -> std::string {
+            return s.direction == StairsDirection::Down
+                       ? std::string(CYAN) + ">"
+                       : std::string(CYAN) + "<";
+          },
+          [](const Chest &c) -> std::string {
+            if (c.is_locked) {
+              return std::string(RED) + "≠";
+            } // watch the return type here!
+            return c.is_open ? std::string(YELLOW) + "~"
+                             : std::string(YELLOW) + "=";
+          },
+      },
+      tile);
 }
 
 static std::string glyph_for(const Tile &tile, const Player &player,
@@ -40,11 +60,11 @@ static std::string glyph_for(const Tile &tile, const Player &player,
     return " ";
 
   // Decide the base glyph
-  char base = base_glyph(tile);
+  std::string base = base_glyph(tile);
 
   // Visible — full brightness
   if (visible || fog_off) {
-    return std::string(1, base);
+    return base + std::string(RESET);
   }
 
   // Remembered but not visible — dimmed
