@@ -1,6 +1,5 @@
 #pragma once
 
-#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
@@ -94,7 +93,7 @@ struct Player {
         shield{30} {}
 };
 
-enum class MoveError { HitWall, OutOfBounds };
+enum class MoveError { HitDoor, HitWall, OutOfBounds };
 
 std::expected<void, MoveError> try_move(Player &player, Grid &grid, int d_row,
                                         int d_col);

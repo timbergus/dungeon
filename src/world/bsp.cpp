@@ -184,6 +184,9 @@ void place_landmarks(BSPNode &root, Grid &grid, std::mt19937 &rng) {
 
   std::size_t chest_count = std::min(leaves.size() / 3, std::size_t{3});
 
+  std::uniform_int_distribution<int> one_in_three{0, 2};
+  std::uniform_int_distribution<int> one_in_five{0, 4};
+
   for (std::size_t i = 0; i < chest_count; ++i) {
     // If we have more chests than available rooms, we need to stop adding them.
     if (used_rooms.size() >= leaves.size()) {
@@ -196,8 +199,16 @@ void place_landmarks(BSPNode &root, Grid &grid, std::mt19937 &rng) {
       index = pick(rng);
     }
 
+    bool found_open = one_in_three(rng) == 0;
+    bool is_mimic = one_in_five(rng) == 0;
+
     auto &room = leaves[index]->region;
-    v[room.center_row(), room.center_col()] = Tile{Chest{}};
+    v[room.center_row(), room.center_col()] = Tile{Chest{
+        .is_open = found_open,
+        .is_mimic = is_mimic,
+        .is_locked = false,
+        .found_open = found_open,
+    }};
     used_rooms.insert(index);
   }
 }

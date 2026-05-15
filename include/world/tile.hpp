@@ -21,6 +21,7 @@ struct Chest {
   bool is_open = false;
   bool is_mimic = false;
   bool is_locked = false;
+  bool found_open = false; // was already open when discovered
 };
 
 using Tile = std::variant<Floor, Wall, Door, Stairs, Chest>;

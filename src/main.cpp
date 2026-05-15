@@ -2,12 +2,19 @@
 #include <expected> // C++23 — explicit error handling without exceptions
 #include <print> // C++23 — std::println (replaces printf/cout for formatted output)
 #include <random>
+#include <variant>
 
 #include "entities/player.hpp"
+#include "overloaded.hpp"
 #include "terminal.hpp"
+#include "ui/art.hpp"
+#include "ui/death_screen.hpp"
+#include "ui/dialog.hpp"
+#include "ui/interactions.hpp"
 #include "world/bsp.hpp"
 #include "world/grid.hpp"
 #include "world/renderer.hpp"
+#include "world/tile.hpp"
 
 // Flags
 static constexpr FogMode DEBUG_FOG_MODE = FogMode::Disabled;
@@ -35,7 +42,13 @@ std::expected<void, InitError> init_terminal() {
 // We'll use a plain enum class (scoped, type-safe) to drive the game loop.
 // In a later step this becomes a proper state machine with std::variant.
 
-enum class GameState { MainMenu, Playing, Paused, GameOver };
+enum class GameState {
+  MainMenu,
+  Playing,
+  Paused,
+  Victory, // reached the bottom level
+  GameOver,
+};
 
 // ── Entry point
 // ───────────────────────────────────────────────────────────────
@@ -44,12 +57,7 @@ int main() {
   terminal.full_clear();
 
   // std::println is C++23: std::format + newline, no '\n' ceremony needed.
-  std::println("╔═════════════════════════════════════════╗");
-  std::println("║       /                                 ║");
-  std::println("║   O===[==== DUNGEON CRAWLER ========-   ║");
-  std::println("║       \\                                 ║");
-  std::println("╚═════════════════════════════════════════╝");
-  std::println("");
+  std::println("{}", Art::LOGO);
 
   // Pattern: handle the expected/unexpected at the call site.
   if (auto result = init_terminal(); !result) {
@@ -88,6 +96,8 @@ int main() {
 
   GameState state = GameState::MainMenu;
   bool running = true;
+
+  InteractionResult death_cause = InteractionResult::None;
 
   while (running) {
     switch (state) {
@@ -128,16 +138,72 @@ int main() {
       if (dr != 0 || dc != 0) {
         auto result = try_move(player, grid, dr, dc);
         player.mark_visible_as_visited(grid);
-        if (!result && result.error() == MoveError::HitWall) {
+        if (!result && (result.error() == MoveError::HitWall ||
+                        result.error() == MoveError::HitDoor)) {
           // Silently ignore wall collisions — just don't move
         }
+      }
+
+      if (key == 'e') {
+        auto v = grid.view();
+
+        auto &tile = v[player.row, player.col];
+
+        std::visit(overloaded{
+                       [&](const Stairs &s) {
+                         auto result = show_dialog(stairs_dialog(s));
+                         if (result == 0) {
+                           // TODO: change level
+                           std::println("Going {}...",
+                                        s.direction == StairsDirection::Down
+                                            ? "down"
+                                            : "up");
+                         }
+                       },
+                       [&](Chest &c) {
+                         auto result = show_dialog(chest_dialog(c));
+
+                         if (!result) {
+                           return; // escaped
+                         }
+
+                         auto outcome = resolve_chest(c, *result);
+
+                         switch (outcome) {
+                         case InteractionResult::MimicAte:
+                           death_cause = InteractionResult::MimicAte;
+                           state = GameState::GameOver;
+                           break;
+                         case InteractionResult::MimicFight:
+                           // TODO: combat system — for now, coin flip
+                           std::println("You fight the mimic...");
+                           death_cause = InteractionResult::MimicFight;
+                           state = GameState::GameOver; // placeholder
+                           break;
+                         case InteractionResult::ChestLooted:
+                           // TODO: spawn loot
+                           std::println("You found some loot!");
+                           break;
+                         default:
+                           break;
+                         }
+                       },
+                       [&](Door &d) {
+                         auto result = show_dialog(door_dialog(d));
+                         if (result == 0 && !d.is_locked) {
+                           d.is_open = true;
+                         }
+                       },
+                       [](const auto &) {} // all other tiles — do nothing
+                   },
+                   tile);
       }
 
       break;
     }
 
     case GameState::GameOver:
-      std::println("[GAME OVER] Thanks for playing!");
+      show_death_screen(death_cause);
       running = false;
       break;
 

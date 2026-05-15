@@ -19,10 +19,19 @@ std::expected<void, MoveError> try_move(Player &player, Grid &grid, int d_row,
 
   auto v = grid.view();
 
+  auto &target =
+      v[static_cast<std::size_t>(new_row), static_cast<std::size_t>(new_col)];
+
   // Wall check
-  if (std::holds_alternative<Wall>(v[static_cast<std::size_t>(new_row),
-                                     static_cast<std::size_t>(new_col)])) {
+  if (std::holds_alternative<Wall>(target)) {
     return std::unexpected(MoveError::HitWall);
+  }
+
+  // Door check
+  if (auto *d = std::get_if<Door>(&target)) {
+    if (!d->is_open) {
+      return std::unexpected(MoveError::HitDoor);
+    }
   }
 
   player.row = static_cast<std::size_t>(new_row);
