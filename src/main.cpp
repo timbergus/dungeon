@@ -1,9 +1,3 @@
-#include <cstdlib>  // std::exit
-#include <expected> // C++23 — explicit error handling without exceptions
-#include <print> // C++23 — std::println (replaces printf/cout for formatted output)
-#include <random>
-#include <variant>
-
 #include "entities/player.hpp"
 #include "overloaded.hpp"
 #include "terminal.hpp"
@@ -15,6 +9,11 @@
 #include "world/grid.hpp"
 #include "world/renderer.hpp"
 #include "world/tile.hpp"
+#include <cstdlib>  // std::exit
+#include <expected> // C++23 — explicit error handling without exceptions
+#include <print> // C++23 — std::println (replaces printf/cout for formatted output)
+#include <random>
+#include <variant>
 
 // Flags
 static constexpr FogMode DEBUG_FOG_MODE = FogMode::Disabled;
@@ -49,6 +48,12 @@ enum class GameState {
   Victory, // reached the bottom level
   GameOver,
 };
+
+// Game statistics.
+
+int levels_descended = 0;
+int mimics_defeated = 0;
+int chests_looted = 0;
 
 // ── Entry point
 // ───────────────────────────────────────────────────────────────
@@ -183,6 +188,7 @@ int main() {
                          case InteractionResult::ChestLooted:
                            // TODO: spawn loot
                            std::println("You found some loot!");
+                           chests_looted++;
                            break;
                          default:
                            break;
@@ -201,6 +207,11 @@ int main() {
 
       break;
     }
+
+    case GameState::Victory:
+      show_victory_screen(levels_descended, mimics_defeated, chests_looted);
+      running = false;
+      break;
 
     case GameState::GameOver:
       show_death_screen(death_cause);

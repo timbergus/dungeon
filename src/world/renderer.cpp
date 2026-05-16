@@ -1,44 +1,39 @@
+#include "world/renderer.hpp"
+#include "overloaded.hpp"
+#include "ui/color.hpp"
 #include <cstddef>
 #include <string>
 #include <unistd.h>
 
-#include "overloaded.hpp"
-#include "world/renderer.hpp"
-
-static constexpr std::string_view DIM = "\033[2m";
-static constexpr std::string_view RESET = "\033[0m";
-static constexpr std::string_view YELLOW = "\033[33m";
-static constexpr std::string_view CYAN = "\033[36m";
-static constexpr std::string_view RED = "\033[31m";
-static constexpr std::string_view GREEN = "\033[32m";
-static constexpr std::string_view WHITE = "\033[37m";
-
 static std::string base_glyph(const Tile &tile) {
-  return std::visit(
-      overloaded{
-          [](const Floor &) -> std::string { return std::string{WHITE} + "."; },
-          [](const Wall &) -> std::string { return std::string{WHITE} + "#"; },
-          [](const Door &d) -> std::string {
-            if (d.is_locked) {
-              return std::string(RED) + "x";
-            }
-            return d.is_open ? std::string(GREEN) + "_"
-                             : std::string(GREEN) + "+";
-          },
-          [](const Stairs &s) -> std::string {
-            return s.direction == StairsDirection::Down
-                       ? std::string(CYAN) + ">"
-                       : std::string(CYAN) + "<";
-          },
-          [](const Chest &c) -> std::string {
-            if (c.is_locked) {
-              return std::string(RED) + "≠";
-            } // watch the return type here!
-            return c.is_open ? std::string(YELLOW) + "~"
-                             : std::string(YELLOW) + "=";
-          },
-      },
-      tile);
+  return std::visit(overloaded{
+                        [](const Floor &) -> std::string {
+                          return std::string{Color::FLOOR} + ".";
+                        },
+                        [](const Wall &) -> std::string {
+                          return std::string{Color::WALL} + "#";
+                        },
+                        [](const Door &d) -> std::string {
+                          if (d.is_locked) {
+                            return std::string(Color::DANGER) + "x";
+                          }
+                          return d.is_open ? std::string(Color::DOOR) + "_"
+                                           : std::string(Color::DOOR) + "+";
+                        },
+                        [](const Stairs &s) -> std::string {
+                          return s.direction == StairsDirection::Down
+                                     ? std::string(Color::STAIRS) + ">"
+                                     : std::string(Color::STAIRS) + "<";
+                        },
+                        [](const Chest &c) -> std::string {
+                          if (c.is_locked) {
+                            return std::string(Color::DANGER) + "≠";
+                          } // watch the return type here!
+                          return c.is_open ? std::string(Color::LOOT) + "~"
+                                           : std::string(Color::LOOT) + "=";
+                        },
+                    },
+                    tile);
 }
 
 static std::string glyph_for(const Tile &tile, const Player &player,
@@ -64,12 +59,12 @@ static std::string glyph_for(const Tile &tile, const Player &player,
 
   // Visible — full brightness
   if (visible || fog_off) {
-    return base + std::string(RESET);
+    return base + std::string(Color::RESET);
   }
 
   // Remembered but not visible — dimmed
   // only remaining case: !visible && remembered && fog_enabled
-  return std::string(DIM) + base + std::string(RESET);
+  return std::string(Color::FOG) + base + std::string(Color::RESET);
 }
 
 void render(Grid &grid, const Player &player, FogMode fog_mode) {

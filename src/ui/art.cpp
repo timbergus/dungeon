@@ -75,6 +75,22 @@ const std::string Art::DEATH = R"(
        ◢  |  ◣
 )";
 
+const std::string Art::DEATH_VICTORY = R"(
+    ░░░░░░░░░░░
+  ░▒▒▒░░░░░▒▒▒░
+ ░▒▓▓▓▒░░░▒▓▓▓▒░
+  ░░▒▒▒░░░▒▒▒░░
+      ░▒▒▒░
+     ░▒███▒░
+    ░▒▒███▒▒░
+   ░▒▒▒███▒▒▒░
+  ░▒▒░ ███ ░▒▒░
+        |
+     [_____]
+     |     |   ☕
+     |_____|
+)";
+
 const std::string Art::DEATH_MIMIC_ATE = R"(
   ╔══════════╗
  ▓║  ◉    ◉ ║

@@ -8,17 +8,19 @@
 #include <unordered_set>
 #include <utility>
 
+#include "entities/being.hpp"
 #include "utils/hash.hpp"
 #include "world/grid.hpp"
 
 inline constexpr std::size_t VISIBILITY_RADIUS = 5;
 
-struct Player {
-  std::string name;
+struct Player : Being {
   std::size_t row;
   std::size_t col;
-  int health;
-  int shield;
+
+  Player(std::string name, std::size_t start_row, std::size_t start_col)
+      : Being{std::move(name), 100, 8, 5, 100, 80}, row{start_row},
+        col{start_col} {}
 
   std::unordered_set<std::pair<std::size_t, std::size_t>, PairHash> visited;
 
@@ -87,10 +89,6 @@ struct Player {
       }
     }
   }
-
-  Player(std::string name, std::size_t start_row, std::size_t start_col)
-      : name{std::move(name)}, row{start_row}, col{start_col}, health{100},
-        shield{30} {}
 };
 
 enum class MoveError { HitDoor, HitWall, OutOfBounds };

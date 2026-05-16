@@ -1,12 +1,8 @@
 #include "ui/death_screen.hpp"
 #include "terminal.hpp"
 #include "ui/art.hpp"
-
-static constexpr std::string_view DEATH_ART =
-    "\033[36m"; // cyan — Death himself
-static constexpr std::string_view DEATH_QUOTE = "\033[37m"; // white — his words
-static constexpr std::string_view DEATH_DIM = "\033[2m";    // dim — the void
-static constexpr std::string_view RESET = "\033[0m";
+#include "ui/color.hpp"
+#include <format>
 
 void show_death_screen(InteractionResult cause) {
   std::string art = Art::DEATH;
@@ -44,30 +40,84 @@ void show_death_screen(InteractionResult cause) {
   std::string frame;
 
   // Separator — dim cyan line across the top
-  frame += std::string(DEATH_DIM) + std::string(DEATH_ART) +
-           std::string(40, '~') + std::string(RESET) + "\n\n";
+  frame += std::string(Color::DEATH_DIM) + std::string(Color::DEATH_ART) +
+           std::string(40, '~') + std::string(Color::RESET) + "\n\n";
 
   // Art — cyan
-  frame += std::string(DEATH_ART) + art + std::string(RESET) + "\n\n";
+  frame +=
+      std::string(Color::DEATH_ART) + art + std::string(Color::RESET) + "\n\n";
 
   // Separator
-  frame += std::string(DEATH_DIM) + std::string(DEATH_ART) +
-           std::string(40, '~') + std::string(RESET) + "\n\n";
+  frame += std::string(Color::DEATH_DIM) + std::string(Color::DEATH_ART) +
+           std::string(40, '~') + std::string(Color::RESET) + "\n\n";
 
   // Death's words — white, slightly dim for gravitas
-  frame += std::string(DEATH_DIM) + std::string(DEATH_QUOTE) + quote +
-           std::string(RESET) + "\n\n";
+  frame += std::string(Color::DEATH_DIM) + std::string(Color::DEATH_QUOTE) +
+           quote + std::string(Color::RESET) + "\n\n";
 
   // Separator
-  frame += std::string(DEATH_DIM) + std::string(DEATH_ART) +
-           std::string(40, '~') + std::string(RESET) + "\n\n";
+  frame += std::string(Color::DEATH_DIM) + std::string(Color::DEATH_ART) +
+           std::string(40, '~') + std::string(Color::RESET) + "\n\n";
 
   // Prompt — dim, unobtrusive
-  frame += std::string(DEATH_DIM) + "[ Press any key to follow... ]" +
-           std::string(RESET) + "\n";
+  frame += std::string(Color::DEATH_DIM) + "[ Press any key to follow... ]" +
+           std::string(Color::RESET) + "\n";
 
   ::write(STDOUT_FILENO, frame.data(), frame.size());
 
   // Wait for any key — no choice needed, Death is not optional
+  Terminal::read_key();
+}
+
+void show_victory_screen(int levels_descended, int mimics_defeated,
+                         int chests_looted) {
+  Terminal::full_clear();
+
+  std::string frame;
+
+  // Top border
+  frame += std::string(Color::DEATH_DIM) + std::string(Color::DEATH_ART) +
+           std::string(40, '~') + std::string(Color::RESET) + "\n\n";
+
+  // Art — Death with coffee
+  frame += std::string(Color::DEATH_ART) + Art::DEATH_VICTORY +
+           std::string(Color::RESET) + "\n\n";
+
+  // Middle border
+  frame += std::string(Color::DEATH_DIM) + std::string(Color::DEATH_ART) +
+           std::string(40, '~') + std::string(Color::RESET) + "\n\n";
+
+  // Death's words
+  frame += std::string(Color::DEATH_DIM) + std::string(Color::DEATH_QUOTE) +
+           "NO NEED TO GET COMFY.\n"
+           "WE WILL MEET AGAIN SOON.\n\n"
+           "BUT SINCE YOU ARE HERE...\n\n" +
+           std::string(Color::RESET);
+
+  // Score summary — yellow for visibility
+  frame += std::string(Color::DEATH_SUMMARY) +
+           std::format("  Levels descended : {:>3}\n", levels_descended) +
+           std::format("  Mimics defeated  : {:>3}\n", mimics_defeated) +
+           std::format("  Chests looted    : {:>3}\n", chests_looted) +
+           std::string(Color::RESET) + "\n";
+
+  // Death's closing remark
+  frame += std::string(Color::DEATH_DIM) + std::string(Color::DEATH_QUOTE) +
+           "\"SIGH\"\n\n"
+           "THE DUNGEON WILL BE READY\n"
+           "WHEN YOU ARE.\n" +
+           std::string(Color::RESET) + "\n\n";
+
+  // Bottom border
+  frame += std::string(Color::DEATH_DIM) + std::string(Color::DEATH_ART) +
+           std::string(40, '~') + std::string(Color::RESET) + "\n\n";
+
+  // Prompt
+  frame += std::string(Color::DEATH_DIM) +
+           "[ Press any key to face the dungeon again... ]" +
+           std::string(Color::RESET) + "\n";
+
+  ::write(STDOUT_FILENO, frame.data(), frame.size());
+
   Terminal::read_key();
 }

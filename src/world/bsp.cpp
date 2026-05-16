@@ -1,12 +1,11 @@
+#include "world/bsp.hpp"
+#include "world/tile.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <memory>
 #include <random>
 #include <unordered_set>
 #include <vector>
-
-#include "world/bsp.hpp"
-#include "world/tile.hpp"
 
 void split(BSPNode &node, std::mt19937 &rng, std::size_t min_size, int depth) {
   if (depth == 0 || node.region.height < min_size * 2 ||
