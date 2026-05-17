@@ -1,7 +1,9 @@
+#include "entities/enemy.hpp"
 #include "entities/player.hpp"
 #include "overloaded.hpp"
 #include "terminal.hpp"
 #include "ui/art.hpp"
+#include "ui/combat.hpp"
 #include "ui/death_screen.hpp"
 #include "ui/dialog.hpp"
 #include "ui/interactions.hpp"
@@ -154,55 +156,133 @@ int main() {
 
         auto &tile = v[player.row, player.col];
 
-        std::visit(overloaded{
-                       [&](const Stairs &s) {
-                         auto result = show_dialog(stairs_dialog(s));
-                         if (result == 0) {
-                           // TODO: change level
-                           std::println("Going {}...",
-                                        s.direction == StairsDirection::Down
-                                            ? "down"
-                                            : "up");
-                         }
-                       },
-                       [&](Chest &c) {
-                         auto result = show_dialog(chest_dialog(c));
+        std::visit(
+            overloaded{
+                [&](const Stairs &s) {
+                  auto result = show_dialog(stairs_dialog(s));
+                  if (result == 0) {
+                    // TODO: change level
+                    std::println("Going {}...",
+                                 s.direction == StairsDirection::Down ? "down"
+                                                                      : "up");
+                  }
+                },
+                [&](Chest &c) {
+                  auto result = show_dialog(chest_dialog(c));
 
-                         if (!result) {
-                           return; // escaped
-                         }
+                  if (!result) {
+                    return; // escaped
+                  }
 
-                         auto outcome = resolve_chest(c, *result);
+                  auto outcome = resolve_chest(c, *result);
 
-                         switch (outcome) {
-                         case InteractionResult::MimicAte:
-                           death_cause = InteractionResult::MimicAte;
-                           state = GameState::GameOver;
-                           break;
-                         case InteractionResult::MimicFight:
-                           // TODO: combat system — for now, coin flip
-                           std::println("You fight the mimic...");
-                           death_cause = InteractionResult::MimicFight;
-                           state = GameState::GameOver; // placeholder
-                           break;
-                         case InteractionResult::ChestLooted:
-                           // TODO: spawn loot
-                           std::println("You found some loot!");
-                           chests_looted++;
-                           break;
-                         default:
-                           break;
-                         }
-                       },
-                       [&](Door &d) {
-                         auto result = show_dialog(door_dialog(d));
-                         if (result == 0 && !d.is_locked) {
-                           d.is_open = true;
-                         }
-                       },
-                       [](const auto &) {} // all other tiles — do nothing
-                   },
-                   tile);
+                  switch (outcome) {
+                  case InteractionResult::MimicAte:
+                    death_cause = InteractionResult::MimicAte;
+                    state = GameState::GameOver;
+                    break;
+                  case InteractionResult::MimicFight: {
+                    Enemy mimic = make_mimic();
+                    bool initiative =
+                        /* did player attack first? */ true;
+                    auto ocm = run_combat(player, mimic, rng, initiative);
+                    if (ocm == InteractionResult::PlayerDied) {
+                      death_cause = InteractionResult::PlayerDied;
+                      state = GameState::GameOver;
+                    } else {
+                      mimics_defeated++;
+                      // TODO: spawn loot
+                    }
+                    break;
+                  }
+                  case InteractionResult::ChestLooted:
+                    // TODO: spawn loot
+                    std::println("You found some loot!");
+                    chests_looted++;
+                    break;
+                  default:
+                    break;
+                  }
+                },
+                [&](Door &d) {
+                  auto result = show_dialog(door_dialog(d));
+                  if (result == 0 && !d.is_locked) {
+                    d.is_open = true;
+                  }
+                },
+                [&](Mimic &m) {
+                  auto result = show_dialog(mimic_dialog(m));
+                  if (!result)
+                    return;
+
+                  // Defeated mimic — search remains
+                  if (m.is_defeated) {
+                    if (*result == 0) {
+                      // TODO: spawn loot from mimic remains
+                      std::println("You find something in the remains...");
+                    }
+                    return;
+                  }
+
+                  // Pre-opened mimic
+                  if (m.is_open) {
+                    if (*result == 0) {
+                      // Inspect — instant death, no escape
+                      show_dialog(
+                          Dialog{.title = "The lid snaps shut. "
+                                          "Were those teeth there before?",
+                                 .art = Art::MIMIC,
+                                 .options = {
+                                     {"1", "...", "Your last thought fades"}}});
+                      death_cause = InteractionResult::MimicAte;
+                      state = GameState::GameOver;
+                    } else if (*result == 1) {
+                      // Attack pre-opened mimic — player has initiative
+                      Enemy mimic = make_mimic();
+                      auto outcome = run_combat(player, mimic, rng, true);
+                      if (outcome == InteractionResult::PlayerDied) {
+                        death_cause = InteractionResult::PlayerDied;
+                        state = GameState::GameOver;
+                      } else {
+                        m.is_defeated = true;
+                        mimics_defeated++;
+                      }
+                    }
+                    // Leave → nothing
+                    return;
+                  }
+
+                  // Disguised mimic — closed
+                  if (*result == 0) {
+                    // "Open it" — mimic reveals itself, enemy has initiative
+                    m.is_open = true;
+                    Enemy mimic = make_mimic();
+                    auto outcome = run_combat(player, mimic, rng, false);
+                    if (outcome == InteractionResult::PlayerDied) {
+                      death_cause = InteractionResult::PlayerDied;
+                      state = GameState::GameOver;
+                    } else {
+                      m.is_defeated = true;
+                      mimics_defeated++;
+                    }
+                  } else if (*result == 1) {
+                    // "Attack it" — player has initiative
+                    m.is_open = true;
+                    Enemy mimic = make_mimic();
+                    auto outcome = run_combat(player, mimic, rng, true);
+                    if (outcome == InteractionResult::PlayerDied) {
+                      death_cause = InteractionResult::PlayerDied;
+                      state = GameState::GameOver;
+                    } else {
+                      m.is_defeated = true;
+                      mimics_defeated++;
+                    }
+                  }
+                  // "Leave it" → nothing
+                },
+                [](const auto &) {} // all other tiles — do nothing
+            },
+            tile);
       }
 
       break;

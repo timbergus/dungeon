@@ -35,6 +35,14 @@ const std::string Art::CHEST_LOCKED = R"(
   ╚══════════╝
 )";
 
+const std::string Art::CHEST_BROKEN = R"(
+  ╔══╗  ╔════╗
+ ▓║  ╚══╝    ║
+▓▓║  ╔══╗    ║▓
+▓▓╚══╝  ╚════╝▓
+  ▓▓▒░ ░▒▓▓▓▓
+)";
+
 const std::string Art::STAIRS_DOWN = R"(
       ░░░
     ░░▒▒▒░░

@@ -12,4 +12,5 @@ extern const std::string DEATH;
 extern const std::string DEATH_VICTORY;
 extern const std::string DEATH_MIMIC_ATE;
 extern const std::string DEATH_MIMIC_FIGHT;
+extern const std::string CHEST_BROKEN;
 } // namespace Art

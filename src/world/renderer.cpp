@@ -6,34 +6,48 @@
 #include <unistd.h>
 
 static std::string base_glyph(const Tile &tile) {
-  return std::visit(overloaded{
-                        [](const Floor &) -> std::string {
-                          return std::string{Color::FLOOR} + ".";
-                        },
-                        [](const Wall &) -> std::string {
-                          return std::string{Color::WALL} + "#";
-                        },
-                        [](const Door &d) -> std::string {
-                          if (d.is_locked) {
-                            return std::string(Color::DANGER) + "x";
-                          }
-                          return d.is_open ? std::string(Color::DOOR) + "_"
-                                           : std::string(Color::DOOR) + "+";
-                        },
-                        [](const Stairs &s) -> std::string {
-                          return s.direction == StairsDirection::Down
-                                     ? std::string(Color::STAIRS) + ">"
-                                     : std::string(Color::STAIRS) + "<";
-                        },
-                        [](const Chest &c) -> std::string {
-                          if (c.is_locked) {
-                            return std::string(Color::DANGER) + "≠";
-                          } // watch the return type here!
-                          return c.is_open ? std::string(Color::LOOT) + "~"
-                                           : std::string(Color::LOOT) + "=";
-                        },
-                    },
-                    tile);
+  return std::visit(
+      overloaded{
+          [](const Floor &) -> std::string {
+            return std::string{Color::FLOOR} + ".";
+          },
+          [](const Wall &) -> std::string {
+            return std::string{Color::WALL} + "#";
+          },
+          [](const Door &d) -> std::string {
+            if (d.is_locked) {
+              return std::string(Color::DANGER) + "x";
+            }
+            return d.is_open ? std::string(Color::DOOR) + "_"
+                             : std::string(Color::DOOR) + "+";
+          },
+          [](const Stairs &s) -> std::string {
+            return s.direction == StairsDirection::Down
+                       ? std::string(Color::STAIRS) + ">"
+                       : std::string(Color::STAIRS) + "<";
+          },
+          [](const Chest &c) -> std::string {
+            if (c.is_broken) {
+              return std::string(Color::WALL) + "%"; // grey % — destroyed
+            }
+            if (c.is_locked) {
+              return std::string(Color::DANGER) + "≠";
+            } // watch the return type here!
+            return c.is_open ? std::string(Color::LOOT) + "~"
+                             : std::string(Color::LOOT) + "=";
+          },
+          [](const Mimic &m) -> std::string {
+            if (m.is_defeated) {
+              return std::string(Color::WALL) + "x"; // dead mimic — grey X
+            }
+            if (m.is_open) {
+              return std::string(Color::DANGER) + "~"; // revealed — red M
+            }
+            return std::string(Color::LOOT) +
+                   "="; // disguised — looks like chest
+          },
+      },
+      tile);
 }
 
 static std::string glyph_for(const Tile &tile, const Player &player,

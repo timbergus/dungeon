@@ -202,12 +202,16 @@ void place_landmarks(BSPNode &root, Grid &grid, std::mt19937 &rng) {
     bool is_mimic = one_in_five(rng) == 0;
 
     auto &room = leaves[index]->region;
-    v[room.center_row(), room.center_col()] = Tile{Chest{
-        .is_open = found_open,
-        .is_mimic = is_mimic,
-        .is_locked = false,
-        .found_open = found_open,
-    }};
+    if (is_mimic) {
+      v[room.center_row(), room.center_col()] = Tile{Mimic{
+          .is_open = found_open, // pre-opened mimic — even more devious
+      }};
+    } else {
+      v[room.center_row(), room.center_col()] = Tile{Chest{
+          .is_open = found_open,
+          .found_open = found_open,
+      }};
+    }
     used_rooms.insert(index);
   }
 }

@@ -9,6 +9,8 @@ enum class InteractionResult {
   ChestLooted,
   MimicFight,
   MimicAte,
+  PlayerDied,
+  SurfaceDeath,
   Descended,
   Ascended,
 };
@@ -16,5 +18,7 @@ enum class InteractionResult {
 Dialog chest_dialog(const Chest &chest);
 Dialog stairs_dialog(const Stairs &stairs);
 Dialog door_dialog(const Door &door);
+Dialog mimic_dialog(const Mimic &mimic);
+Dialog broken_chest_dialog(const Chest &chest);
 
 InteractionResult resolve_chest(Chest &chest, std::size_t choice);

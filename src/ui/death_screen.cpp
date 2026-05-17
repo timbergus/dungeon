@@ -25,6 +25,22 @@ void show_death_screen(InteractionResult cause) {
             "PLEASE, FOLLOW ME TO THE LOBBY.";
     break;
 
+  case InteractionResult::PlayerDied:
+    quote = "YOU FOUGHT. THAT IS SOMETHING.\n"
+            "NOT MUCH, BUT SOMETHING.\n\n"
+            "\"SIGH\"\n\n"
+            "PLEASE, FOLLOW ME TO THE LOBBY.";
+    break;
+
+  case InteractionResult::SurfaceDeath:
+    quote = "THE ORCS SEND THEIR REGARDS.\n\n"
+            "I DID TRY TO WARN YOU.\n"
+            "WELL. NO. I DIDN'T.\n"
+            "BUT I THOUGHT ABOUT IT.\n\n"
+            "\"SIGH\"\n\n"
+            "PLEASE, FOLLOW ME TO THE LOBBY.";
+    break;
+
   default:
     quote = "EVERYONE DIES.\n"
             "MOST PEOPLE MANAGE IT\n"

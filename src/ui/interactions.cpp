@@ -1,6 +1,11 @@
 #include "ui/interactions.hpp"
 
 Dialog chest_dialog(const Chest &chest) {
+  // Broken — always check this first
+  if (chest.is_broken) {
+    return broken_chest_dialog(chest);
+  }
+
   // Already looted by the player
   if (chest.is_open && !chest.found_open) {
     return Dialog{.title = "You already looted this chest.",
@@ -43,6 +48,19 @@ Dialog chest_dialog(const Chest &chest) {
                 }};
 }
 
+// In stairs_dialog — or a new surface_dialog
+Dialog surface_dialog() {
+  return Dialog{.title = "You climb the stairs toward the surface.\n\n"
+                         "Fresh air. Sunlight. Freedom.\n\n"
+                         "Also Orcs. Lots of Orcs.\n"
+                         "Now you remember why you came down here.\n\n"
+                         "Well. Best of luck next time.",
+                .art = Art::STAIRS_UP,
+                .options = {
+                    {"1", "...", "Death nods sympathetically"},
+                }};
+}
+
 Dialog stairs_dialog(const Stairs &stairs) {
   if (stairs.direction == StairsDirection::Down) {
     return Dialog{.title = "A dark passage leads downward...",
@@ -78,44 +96,123 @@ Dialog door_dialog(const Door &door) {
                 }};
 }
 
+Dialog mimic_dialog(const Mimic &mimic) {
+  if (mimic.is_defeated) {
+    return Dialog{
+        .title = "The mimic lies still. "
+                 "Its teeth are less charming now.",
+        .art = Art::MIMIC,
+        .options = {
+            {"1", "Search the remains", "Maybe it dropped something useful"},
+            {"2", "Walk away", "You've seen enough teeth today"},
+        }};
+  }
+
+  // Pre-opened mimic — player thinks it's an already-looted chest
+  if (mimic.is_open && !mimic.is_defeated) {
+    return Dialog{.title = "An open chest... someone got here first. "
+                           "Or did they?",
+                  .art = Art::CHEST_OPEN, // still deceiving with chest art!
+                  .options = {
+                      {"1", "Inspect it", "Maybe something was missed..."},
+                      {"2", "Attack it", "Strike first — just in case"},
+                      {"3", "Leave it", "Something feels very wrong..."},
+                  }};
+  }
+
+  if (mimic.is_open) {
+    return Dialog{.title = "The chest snaps open. Those are definitely teeth.",
+                  .art = Art::MIMIC,
+                  .options = {
+                      {"1", "Fight!", "No choice now — it's already lunging"},
+                      {"2", "Run!", "Brave. Statistically unwise."},
+                  }};
+  }
+
+  // Disguised — player thinks it's a closed chest
+  return Dialog{.title = "A chest... probably. Almost certainly. Most likely.",
+                .art = Art::CHEST_CLOSED,
+                .options = {
+                    {"1", "Open it", "Reach for the lid"},
+                    {"2", "Attack it", "Strike first, ask questions later"},
+                    {"3", "Leave it", "Something feels... bitey"},
+                }};
+}
+
+Dialog broken_chest_dialog(const Chest &chest) {
+
+  // Second interaction with an already broken chest
+  if (chest.is_broken && chest.is_open) {
+    return Dialog{.title = "A pile of splinters.\n"
+                           "A monument to your paranoia.\n\n"
+                           "Nothing left here.",
+                  .art = Art::CHEST_BROKEN,
+                  .options = {
+                      {"1", "Walk away", "Nothing to see here"},
+                  }};
+  }
+
+  std::string title;
+
+  if (chest.found_open) {
+    title = "You attack the already-open chest.\n"
+            "Your paranoia has reached new heights.\n\n"
+            "It was not a mimic.\n"
+            "It was not even suspicious.\n"
+            "It was just a chest.";
+  } else if (chest.is_open) {
+    title = "You attack the chest you just opened.\n"
+            "A bold strategy.\n\n"
+            "The loot you were about to pick up\n"
+            "is now decorating the walls.";
+  } else {
+    title = "You smash the innocent chest.\n\n"
+            "It was not a mimic.\n"
+            "The loot is... everywhere.\n"
+            "And somehow also nowhere.";
+  }
+
+  return Dialog{.title = title,
+                .art = Art::CHEST_BROKEN,
+                .options = {
+                    {"1", "Sigh deeply", "At least no one saw that"},
+                }};
+}
+
 InteractionResult resolve_chest(Chest &chest, std::size_t choice) {
-  // Already looted — only option is walk away
+  // Already looted by the player — walk away
   if (chest.is_open && !chest.found_open)
     return InteractionResult::None;
 
-  // Found open chest
+  // Found open — could have remaining loot
   if (chest.is_open && chest.found_open) {
     if (choice == 0) {
-      // Inspect — no escape from an open mimic
-      if (chest.is_mimic) {
-        // Show the Pratchett moment 😈
-        show_dialog(Dialog{
-            .title = "The lid snaps shut. Were those teeth there before?",
-            .art = Art::MIMIC,
-            .options = {{"1", "...", "Your last thought fades"}}});
-        return InteractionResult::MimicAte;
-      }
-      chest.found_open = false; // no longer suspicious
+      // Inspect — just a chest, might have something left
+      chest.found_open = false;
       return InteractionResult::ChestLooted;
     }
     if (choice == 1) {
-      // Attack — win or lose, no loot from an open mimic
-      return InteractionResult::MimicFight;
+      // Attack — destroy it
+      show_dialog(broken_chest_dialog(chest));
+      chest.is_broken = true;
+      return InteractionResult::None;
     }
     return InteractionResult::None; // leave it
   }
 
   // Closed chest — choice 0: open, 1: attack, 2: leave
   if (choice == 0) {
-    if (chest.is_mimic) {
-      chest.is_open = true;
-      return InteractionResult::MimicFight; // mimic reveals itself
-    }
     chest.is_open = true;
     return InteractionResult::ChestLooted;
   }
-  if (choice == 1)
-    return InteractionResult::MimicFight; // attack regardless
+
+  if (choice == 1) {
+    show_dialog(broken_chest_dialog(chest));
+    // Attacking a real chest — destroys it, no loot
+    chest.is_open = true;
+    chest.is_broken = true;
+    return InteractionResult::None;
+  }
 
   return InteractionResult::None; // leave it
 }
