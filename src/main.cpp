@@ -51,17 +51,17 @@ enum class GameState {
   GameOver,
 };
 
-// Game statistics.
-
-int levels_descended = 0;
-int mimics_defeated = 0;
-int chests_looted = 0;
-
 // ── Entry point
 // ───────────────────────────────────────────────────────────────
 int main() {
   Terminal terminal{};
   terminal.full_clear();
+
+  // Game statistics.
+
+  int levels_descended = 0;
+  int mimics_defeated = 0;
+  int chests_looted = 0;
 
   // std::println is C++23: std::format + newline, no '\n' ceremony needed.
   std::println("{}", Art::LOGO);

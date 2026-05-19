@@ -49,7 +49,7 @@ void split(BSPNode &node, std::mt19937 &rng, std::size_t min_size, int depth) {
   split(*node.right, rng, min_size, depth - 1);
 }
 
-void place_rooms(BSPNode &node, Grid &grid, std::mt19937 rng,
+void place_rooms(BSPNode &node, Grid &grid, std::mt19937 &rng,
                  std::size_t min_size) {
   if (node.is_leaf()) {
     // Pick a random room size that fits inside this region

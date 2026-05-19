@@ -26,7 +26,7 @@ struct BSPNode {
 
 void split(BSPNode &node, std::mt19937 &rng, std::size_t min_size, int depth);
 
-void place_rooms(BSPNode &node, Grid &grid, std::mt19937 rng,
+void place_rooms(BSPNode &node, Grid &grid, std::mt19937 &rng,
                  std::size_t min_size);
 
 void carve_corridors(BSPNode &node, Grid &grid);

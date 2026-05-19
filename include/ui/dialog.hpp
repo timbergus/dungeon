@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-struct DialogOptions {
+struct DialogOption {
   std::string key;
   std::string label;
   std::string description;
@@ -14,7 +14,7 @@ struct DialogOptions {
 struct Dialog {
   std::string title;
   std::string art;
-  std::vector<DialogOptions> options;
+  std::vector<DialogOption> options;
 };
 
 using DialogResult = std::optional<std::size_t>;

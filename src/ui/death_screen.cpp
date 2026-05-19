@@ -21,14 +21,14 @@ void show_death_screen(InteractionResult cause) {
     art = Art::DEATH_MIMIC_FIGHT;
     quote = "YOU FOUGHT BRAVELY. WELL.\n"
             "ADEQUATELY. WELL, YOU FOUGHT.\n\n"
-            "\"SIGH\"\n\n"
+            "\"SIGHT\"\n\n"
             "PLEASE, FOLLOW ME TO THE LOBBY.";
     break;
 
   case InteractionResult::PlayerDied:
     quote = "YOU FOUGHT. THAT IS SOMETHING.\n"
             "NOT MUCH, BUT SOMETHING.\n\n"
-            "\"SIGH\"\n\n"
+            "\"SIGHT\"\n\n"
             "PLEASE, FOLLOW ME TO THE LOBBY.";
     break;
 
@@ -37,7 +37,7 @@ void show_death_screen(InteractionResult cause) {
             "I DID TRY TO WARN YOU.\n"
             "WELL. NO. I DIDN'T.\n"
             "BUT I THOUGHT ABOUT IT.\n\n"
-            "\"SIGH\"\n\n"
+            "\"SIGHT\"\n\n"
             "PLEASE, FOLLOW ME TO THE LOBBY.";
     break;
 
@@ -45,7 +45,7 @@ void show_death_screen(InteractionResult cause) {
     quote = "EVERYONE DIES.\n"
             "MOST PEOPLE MANAGE IT\n"
             "WITH MORE DIGNITY THAN THIS.\n\n"
-            "\"SIGH\"\n\n"
+            "\"SIGHT\"\n\n"
             "PLEASE, FOLLOW ME TO THE LOBBY.";
     break;
   }
@@ -119,7 +119,7 @@ void show_victory_screen(int levels_descended, int mimics_defeated,
 
   // Death's closing remark
   frame += std::string(Color::DEATH_DIM) + std::string(Color::DEATH_QUOTE) +
-           "\"SIGH\"\n\n"
+           "\"SIGHT\"\n\n"
            "THE DUNGEON WILL BE READY\n"
            "WHEN YOU ARE.\n" +
            std::string(Color::RESET) + "\n\n";

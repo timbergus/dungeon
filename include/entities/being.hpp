@@ -12,7 +12,6 @@ struct Being {
   int resistance; // Innate damage mitigation.
   int stamina;
   int max_stamina;
-  int max_stamina_capacity;
   int attack;
   int shield;                   // Always 0 at creation. Added by items.
   int carried_weight = 0;       // Current carried weight.

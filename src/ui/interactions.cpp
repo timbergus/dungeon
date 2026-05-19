@@ -120,15 +120,6 @@ Dialog mimic_dialog(const Mimic &mimic) {
                   }};
   }
 
-  if (mimic.is_open) {
-    return Dialog{.title = "The chest snaps open. Those are definitely teeth.",
-                  .art = Art::MIMIC,
-                  .options = {
-                      {"1", "Fight!", "No choice now — it's already lunging"},
-                      {"2", "Run!", "Brave. Statistically unwise."},
-                  }};
-  }
-
   // Disguised — player thinks it's a closed chest
   return Dialog{.title = "A chest... probably. Almost certainly. Most likely.",
                 .art = Art::CHEST_CLOSED,

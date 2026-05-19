@@ -73,7 +73,7 @@ struct Player : Being {
     auto dr = static_cast<double>(r) - static_cast<double>(row);
     auto dc = static_cast<double>(c) - static_cast<double>(col);
 
-    auto dist = std::sqrt(std::pow(dr, 2) + std::pow(dc, 2));
+    auto dist = std::sqrt(dr * dr + dc * dc);
 
     bool in_radius = dist <= static_cast<double>(VISIBILITY_RADIUS);
 

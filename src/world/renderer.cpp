@@ -41,7 +41,8 @@ static std::string base_glyph(const Tile &tile) {
               return std::string(Color::WALL) + "x"; // dead mimic — grey X
             }
             if (m.is_open) {
-              return std::string(Color::DANGER) + "~"; // revealed — red M
+              return std::string(Color::LOOT) +
+                     "~"; // disguised — looks like an open chest
             }
             return std::string(Color::LOOT) +
                    "="; // disguised — looks like chest

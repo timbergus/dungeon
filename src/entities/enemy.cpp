@@ -17,27 +17,19 @@ Enemy make_mimic() {
 };
 
 Enemy make_goblin() {
-  Enemy e{
-      "Goblin", "Small, green, and surprisingly irritating.", Goblin{},
-      25, // Max health
-      3,  // Resistance - chest aren't agile
-      4,  // But they hit hard
-      90, // Max stamina
-      30  // Max carried weight
-  };
+  Enemy e{"Goblin", "Small, green, and surprisingly irritating.",
+          Goblin{}, 25,
+          3,        4,
+          90,       30};
 
   return e;
 };
 
 Enemy make_mage() {
-  Enemy e{
-      "Mage", "Probably failed his exams at wizard school.", Mage{},
-      35, // Max health
-      5,  // Resistance - chest aren't agile
-      6,  // But they hit hard
-      70, // Max stamina
-      40  // Max carried weight
-  };
+  Enemy e{"Mage", "Probably failed his exams at wizard school.",
+          Mage{}, 35,
+          5,      6,
+          70,     40};
 
   return e;
 };
