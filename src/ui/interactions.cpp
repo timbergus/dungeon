@@ -1,4 +1,5 @@
 #include "ui/interactions.hpp"
+#include "ui/art.hpp"
 
 Dialog chest_dialog(const Chest &chest) {
   // Broken — always check this first

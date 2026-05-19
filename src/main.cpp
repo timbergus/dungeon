@@ -18,7 +18,7 @@
 #include <variant>
 
 // Flags
-static constexpr FogMode DEBUG_FOG_MODE = FogMode::Disabled;
+static constexpr FogMode DEBUG_FOG_MODE = FogMode::Enabled;
 // static constexpr bool DEBUG_SHOW_GRID = false; // For later.
 
 // ── A tiny taste of C++23 error handling ─────────────────────────────────────
